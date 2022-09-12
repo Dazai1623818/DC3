@@ -10,15 +10,15 @@ st.set_page_config(layout="wide")
 
 district_map = geopandas.read_file('maps/districts.geojson').drop(['date', 'validOn', 'ValidTo'], axis=1)
 region_map = geopandas.read_file('maps/regions.geojson')
-
-
 df = pd.read_csv('data/conflict.csv')
+
+# Extract scale for slider
 min_date = datetime.strptime(df['date'].min(), '%Y-%m-%d')
 max_date = datetime.strptime(df['date'].max(), '%Y-%m-%d')
 df['date'] = pd.to_datetime(df['date'])
+df = df.sort_values('date')
 
-
-
+# Input widgets
 map_type = st.radio(
      "Map Type",
      ('districts', 'regions'))
@@ -27,16 +27,15 @@ date = st.slider(
      "Schedule your appointment:",
      value=(min_date, max_date))
 
-df = df.sort_values('date')
+# Slider output
 df = (df
      [df['date'] >= date[0]]
      [df['date'] < date[1]])
 
-
+# mapping number of conflicts to district name
 counts = (df['district']
           .value_counts()
           .to_dict())
-
 gdf = geopandas.read_file(f'maps/{map_type}.geojson')
 gdf.set_index('admin2Name')
 gdf['counts'] = (gdf
@@ -44,11 +43,8 @@ gdf['counts'] = (gdf
                  .map(counts)
                  .fillna(0))
 
-counts = counts.values()
-scheme = mc.UserDefined(list(counts),
-                        [0, max(counts)])
 
-
+# Graph parameters
 gdf = gdf.explore(column='counts',
                   cmap='Reds',
                   scheme='user_defined', 

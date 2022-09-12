@@ -8,8 +8,8 @@ import mapclassify as mc
 
 st.set_page_config(layout="wide")
 
-district_map = geopandas.read_file('maps/districts.geojson').drop(['date', 'validOn', 'ValidTo'], axis=1)
-region_map = geopandas.read_file('maps/regions.geojson')
+district_map = geopandas.read_file('data/maps/districts.geojson').drop(['date', 'validOn', 'ValidTo'], axis=1)
+region_map = geopandas.read_file('data/maps/regions.geojson')
 df = pd.read_csv('data/conflict.csv')
 
 # Extract scale for slider

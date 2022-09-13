@@ -243,7 +243,7 @@ MAE = mean_absolute_error(ytest, predictions)
 # increase           = [0 if x<y else 1 for x in df.iloc[165:]['next_prevalence'] for y in df.iloc[165:]['prevalence']] (Wrong)
 # predicted_increase = [0 if x<y else 1 for x in predictions                      for y in df.iloc[165:]['prevalence']] (Wrong)
 increase = np.where(df.iloc[165:]['next_prevalence'] < df.iloc[165:]['prevalence'], 0, 1)
-increase = np.where(predictions < df.iloc[165:]['prevalence'], 0, 1)
+predicted_increase = np.where(predictions < df.iloc[165:]['prevalence'], 0, 1)
 
 #Calculate accuracy of predicted boolean increase/decrease
 acc = accuracy_score(increase, predicted_increase)

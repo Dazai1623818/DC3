@@ -5,6 +5,8 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, accuracy_score
 from tqdm import tqdm
 
+
+
 '''------------SECTION USER VARIABLES--------------'''
 #Define the path to your datafolder below
 your_datapath = 'Data/'
@@ -15,6 +17,8 @@ num_trees_max = 128
 
 depth_min = 2
 depth_max = 7
+
+
 
 '''------------SECTION FUNCTIONS--------------'''
 #Function that creates a pandas dataframe for a single district with columns for the baseline model with semiyearly entries
@@ -148,6 +152,8 @@ df = (make_combined_df_semiyearly(your_datapath)
       .query("district != ['Burco', 'Saakow', 'Rab Dhuure', 'Baydhaba', 'Afmadow']")
      )
 #Drop disctricts with less than 7 observations: 'Burco', 'Saakow', 'Rab Dhuure', 'Baydhaba', 'Afmadow'
+
+
 
 '''------------SECTION RANDOM FOREST CROSS VALIDATION--------------'''
 #WARNING: this process can take some time, since there are a lot of hyperparameters to investigate. The search space can be manually reduced to speed up the process.

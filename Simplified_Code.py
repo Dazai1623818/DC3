@@ -142,7 +142,9 @@ def subsets (l):
         for j in range(i):
             subset_list.append(l[j: i])
     return subset_list
-  
+
+
+
 '''------------SECTION DATAFRAME CREATION--------------'''
 #Create the dataframe for all districts
 df = (make_combined_df_semiyearly(your_datapath)

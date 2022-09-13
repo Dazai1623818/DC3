@@ -36,7 +36,7 @@ df = (df
 counts = (df['district']
           .value_counts()
           .to_dict())
-gdf = geopandas.read_file(f'maps/{map_type}.geojson')
+gdf = geopandas.read_file(f'data/maps/{map_type}.geojson')
 gdf.set_index('admin2Name')
 gdf['counts'] = (gdf
                  ['admin2Name']

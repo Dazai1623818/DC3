@@ -9,28 +9,29 @@ st.set_page_config(layout="wide")
 st.title('Somalia prevalence indicator visualization dashboard')
 st.sidebar.button('sample button')
 
-# Extract scale for slider
-df = preprocess() 
-min_date, max_date = extract_dates(df) 
-
+# Select dataset and slice dates
 dataset = st.selectbox('Select dataset to display',
                        ('conflict', 'admissions'))
-                       
-
-# Input widget
+df = preprocess(dataset) 
+min_date, max_date = extract_dates(df) 
 date = st.slider(
      "Select timeframe:",
      value=(min_date, max_date))
 
-# Slider output
 df = slice_dates(df, date)
-
 if len(df) < 1:
      st.warning(no_dates)
      st.stop()
 
 # mapping variable to district name
-counts = map_counts(df)
+columns = (df.
+         columns.
+         drop(['date', 'district']).
+         to_list())
+
+column = st.selectbox('Select column to display',
+                       columns)
+counts = map_counts(df, column)
 
 # Graph parameters
 m = plot_explore(counts)

@@ -1,58 +1,53 @@
 import geopandas
 import pandas as pd
 import streamlit as st
+from lib import processing
 from streamlit_folium import st_folium
-from datetime import datetime
-import mapclassify as mc
 
 
 st.set_page_config(layout="wide")
-
-district_map = geopandas.read_file('data/maps/districts.geojson').drop(['date', 'validOn', 'ValidTo'], axis=1)
-region_map = geopandas.read_file('data/maps/regions.geojson')
-df = pd.read_csv('data/conflict.csv')
+st.title('Somalia prevalence indicator visualization dashboard')
+st.sidebar.button('sample button')
 
 # Extract scale for slider
-min_date = datetime.strptime(df['date'].min(), '%Y-%m-%d')
-max_date = datetime.strptime(df['date'].max(), '%Y-%m-%d')
-df['date'] = pd.to_datetime(df['date'])
-df = df.sort_values('date')
+df = processing.preprocess() 
+min_date, max_date = processing.extract_dates(df) 
 
-# Input widgets
-map_type = st.radio(
-     "Map Type",
-     ('districts', 'regions'))
 
+# Input widget
 date = st.slider(
-     "Schedule your appointment:",
+     "Select timeframe:",
      value=(min_date, max_date))
 
 # Slider output
-df = (df
-     [df['date'] >= date[0]]
-     [df['date'] < date[1]])
+processing.slice_dates(df, date)
 
-# mapping number of conflicts to district name
-counts = (df['district']
-          .value_counts()
-          .to_dict())
-gdf = geopandas.read_file(f'data/maps/{map_type}.geojson')
-gdf.set_index('admin2Name')
+# mapping variable to district name
+df = df.groupby(['district']).sum()
+counts = df['MAM_admissions'].to_dict()
+# counts = (df['district']
+#           .value_counts()
+#           .to_dict())
+
+gdf = geopandas.read_file('data/maps/districts.geojson').drop(['date', 'validOn', 'ValidTo'], axis=1)
+gdf = (gdf
+       [['admin2Name', 'admin1Name', 'geometry',
+         'Shape_Leng', 'Shape_Area']])
 gdf['counts'] = (gdf
                  ['admin2Name']
                  .map(counts)
                  .fillna(0))
-
+st.write(gdf)
 
 # Graph parameters
 gdf = gdf.explore(column='counts',
                   cmap='Reds',
-                  scheme='user_defined', 
-                  classification_kwds={'bins':[0, 10, 20, 30, 40, 50, 61]})
+                  scheme='user_defined',
+                  classification_kwds={'bins':counts.quantile([.25, .5, .75])})
 
 st_folium(gdf, 
-          width=1500, 
-          height=1000)
+          width=2000, 
+          height=900)
 
 
 

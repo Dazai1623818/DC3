@@ -17,16 +17,18 @@ def slice_dates(df, date):
      [df['date'] >= date[0]]
      [df['date'] < date[1]])   
 
-def preprocess():
-    df_conflict = pd.read_csv(f'{path}conflict.csv')
+def preprocess(dataset):
+    df_conflict = pd.read_csv(f'{path}conflict.csv', parse_dates=['date'])
     df_admissions = pd.read_csv(f'{path}admissions.csv', parse_dates=['date'])
     df_admissions['district'] = df_admissions['district'].replace('Ceel Dheere', 'Ceel Dheer')
-    return df_admissions
+    selector = {'conflict': df_conflict, 
+                'admissions': df_admissions}
+    return selector[dataset]
 
 
-def map_counts(df):
+def map_counts(df, column):
     df = df.groupby(['district']).sum()
-    counts = df['MAM_admissions']
+    counts = df[column]
     return np.sqrt(counts, out=np.zeros_like(counts), where=(counts!=0))
 
 def plot_explore(counts):

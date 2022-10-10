@@ -138,23 +138,25 @@ df = (make_combined_df_semiyearly(your_datapath)
 
 # Priors:
 
-### $\phi=N(0, 20)$
+### $\beta_1=N(0, 20)$
+
+### $\beta_2=N(0, 20)$
 
 ### $\sigma=Exp(1)$
 
 # Likelihood:
 
-### $x_t|\phi_1, \sigma, x_1\sim N(\phi x_{t-1}, \sigma)$
+### $x_{t + 1}|\beta_1, \beta_2, \sigma \sim N(\beta_1 x_{t} + \beta_2 x_{t - 1}, \sigma)$
 
 # Posterior:
 
-### $\phi, \sigma|x\sim ?$
+### $\beta_1, \beta_2, \sigma|x\sim ?$
 
 # Explanation:
 
-### $\sigma$ for generating $\phi_1$ is so high because the current distribution is unknown. Hence higher variance allows flatter distribution and have more space in exploring hyperparameters.
+### Sigma for generating $\beta_1$ and $\beta_2$ is so high because the current distribution is unknown. Hence higher variance allows flatter distribution and have more space in exploring hyperparameters.
 
-### Data generation formula uses data from the last time lag.
+### Data generation formula uses prevalence and prevalence from the last time lag to predict next prevalence.
 
 '''------------SECTION PROBABLISTIC MODEL--------------'''
 district_name = 'Sablaale'

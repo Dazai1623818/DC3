@@ -157,14 +157,21 @@ df = (make_combined_df_semiyearly(your_datapath)
 ### Data generation formula uses data from the last time lag.
 
 '''------------SECTION PROBABLISTIC MODEL--------------'''
-district_name = 'Baraawe'
+district_name = 'Sablaale'
+needed_data = df.query("district == @district_name")
+prevalence_array = np.array(needed_data['prevalence_6lag'].tolist() + [
+    needed_data['prevalence'].tolist()[-1], 
+    needed_data['next_prevalence'].tolist()[-1]
+])
+
+# NUTS
 
 with pm.Model() as bayes_model:
-    phi = pm.Normal("phi", mu = 0, sigma = 20)
-    sigma = pm.Exponential("sigma", lam = 1)
+     coefs = pm.Normal("coefs", mu = 0, sigma = 20, size = 2)
+     sigma = pm.Exponential("sigma", lam = 1)
     
-    likelihood = pm.AR("x", phi, sigma, observed = df.query("district == @district_name")['prevalence'].to_numpy()[: 5])
-    trace = pm.sample(10000, cores = 2)
+     likelihood = pm.AR("x", coefs, sigma, observed = prevalence_array[: 7])
+     trace = pm.sample(5000, cores = 2)
     
 plt.figure(figsize = (7, 7))
 pm.plot_trace(trace)
@@ -172,31 +179,23 @@ plt.tight_layout()
 
 posterior = trace.posterior.stack(sample=['chain', 'draw'])
 
-phi_vals = posterior['phi']
+coef_1_vals = posterior['coefs'][0]
+coef_2_vals = posterior['coefs'][1]
 sigma_vals = posterior['sigma']
 
-ax = plt.figure(figsize = (10, 4))
-ax = sns.distplot(phi_vals)
-p = ax.axvline(phi_vals.mean(), color = 'r', linewidth = 1, label = 'Mean of phi')
-ax.legend()
-ax.set_title("Distribution of $\phi$\n $\overline{\phi}=$" + str(float(np.round(phi_vals.mean(), 3))))
-
-ax = plt.figure(figsize = (10, 4))
-ax = sns.distplot(sigma_vals)
-p = ax.axvline(sigma_vals.mean(), color = 'r', linewidth = 1, label = 'Mean of sigma')
-ax.legend()
-ax.set_title("Distribution of $\sigma$\n $\overline{\sigma}=$" + str(float(np.round(sigma_vals.mean(), 3))))
-
 def plot_final_prediction(i, district):
-    x_array = df.query("district == @district")['prevalence'].to_numpy()
-    result = np.array([np.random.choice(phi_vals) * x_array[i - 1] + np.random.normal(0, np.random.choice(sigma_vals)) for _ in tqdm(range(10000))])
+    sample_size = 10000
+    result = np.array([np.random.choice(coef_1_vals) * prevalence_array[i - 1] 
+                       + np.random.choice(coef_2_vals) * prevalence_array[i - 2] 
+                          + np.random.normal(0, np.random.choice(sigma_vals)) for _ in tqdm(range(sample_size))])
     ax = plt.figure(figsize = (10, 4))
     ax = sns.distplot(result)
-    p1 = ax.axvline(result.mean(), color = 'r', linewidth = 1, label = 'Predicted Prevalence Mean')
-    p2 = ax.axvline(x_array[i], color = 'b', linewidth = 1, label = 'Actual Prevalence')
+    p1 = ax.axvline(result.mean(), color = 'r', linewidth = 1, label = 'Predicted Next Prevalence Mean')
+    p2 = ax.axvline(prevalence_array[i], color = 'b', linewidth = 1, label = 'Actual Next Prevalence')
     ax.legend()
-    ax.set_title(f"Prevalence for Record {i} in {district}: \n Actual Prevalence: {round(x_array[i], 3)}, Predicted Prevalence Mean: {round(result.mean(), 3)}, Predicted Prevalence SD: {round(result.std(), 3)}")
-    
+    ax.set_xlim(-4, 4)
+    ax.set_title(f"Next Prevalence for Record {i} in {district}: \n Actual Prevalence: 
+                 {round(prevalence_array[i], 3)}, Predicted Prevalence Mean: 
+                 {round(result.mean(), 3)}, Predicted Prevalence SD: {round(result.std(), 3)}")
+                 
 plot_final_prediction(5, district_name)
-
-plot_final_prediction(6, district_name)
